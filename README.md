@@ -6,7 +6,8 @@ An intelligent n8n workflow that takes a user's input and automatically generate
 
 ## 📌 Workflow Overview
 
-![Workflow Screenshot](./screenshots/workflow.png)
+<img width="1529" height="431" alt="image" src="https://github.com/user-attachments/assets/5c678805-128b-44f8-a683-1a80012796c3" />
+
 
 The workflow is triggered by a form submission and runs through the following pipeline:
 
@@ -89,8 +90,6 @@ Set up the following credentials in n8n:
 ```
 ├── README.md
 ├── linkedin-post-creator.json   # n8n workflow export
-└── screenshots/
-    └── workflow.png             # Workflow canvas screenshot
 ```
 
 ---
