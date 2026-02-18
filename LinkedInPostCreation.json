@@ -1,0 +1,337 @@
+{
+  "name": "LinkedInPostCreation",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Content Generation Topics",
+        "formDescription": "This form includes different content generation ideas",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "What is you name?"
+            },
+            {
+              "fieldLabel": "Content Topic"
+            },
+            {
+              "fieldLabel": "Description"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        0,
+        0
+      ],
+      "id": "8462f400-b1c3-40ef-bdb9-223f40565774",
+      "name": "On form submission",
+      "webhookId": "b6232e7b-bb67-49af-8cde-7dbff1ebb5b9"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "gpt-4o"
+        },
+        "responsesApiEnabled": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        512,
+        256
+      ],
+      "id": "c7884a9e-16d7-481b-a54b-8a3325e56b20",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "a7Lx3C2hjRGCq9At",
+          "name": "n8nSuryarajCred"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.tavily.com/search",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "=Topic: {{ $json['Content Topic'] }}, \nDescription: {{ $json.Description }}"
+            },
+            {
+              "name": "search_depth",
+              "value": "advanced"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [
+        352,
+        240
+      ],
+      "id": "dd5ba244-34cf-4bcf-9c50-49f96f71172e",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "ADR2MC59YmxeuaUn",
+          "name": "Tavily"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.output }}",
+        "options": {
+          "systemMessage": "You are an AI assistant that converts user ideas into clear, detailed prompts for an image generation tool.\n\nYour task is to:\n\nCarefully understand the user’s request.\n\nTransform it into a vivid, descriptive, and well-structured image generation prompt.\n\nAdd important visual details such as:\n\nSubject (who/what)\n\nSetting/background\n\nStyle (realistic, cinematic, 3D, anime, watercolor, minimal, etc.)\n\nLighting (soft light, golden hour, dramatic lighting, neon, etc.)\n\nCamera angle or perspective (close-up, wide shot, aerial view, portrait, etc.)\n\nMood or atmosphere\n\nColors and textures\n\nIf the user mentions statistics, metrics, percentages, data comparisons, or growth numbers:\n\nVisually incorporate them into the image (charts, bar graphs, line graphs, infographics, dashboards, floating UI elements, etc.).\n\nEnsure numbers are clearly visible and realistic.\n\nMake the graph style match the overall aesthetic (corporate, modern UI, futuristic holographic, minimal infographic, etc.).\n\nIf the user specifies platform needs (LinkedIn banner, Instagram post, website hero image, presentation slide, etc.), include proper aspect ratio and layout guidance."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        560,
+        16
+      ],
+      "id": "6d9447f1-1101-470f-8652-c5c91fb3d370",
+      "name": "Image Generation Prompt"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json['Content Topic'] }} : {{ $json.Description }}",
+        "options": {
+          "systemMessage": "You are a professional LinkedIn content writer.\n\nYour task is to:\n\nUnderstand the user’s topic clearly.\n\nAlways the post should have real, recent, or factual information (news, trends, statistics, company updates, technology releases, market changes), use the Tavily tool to fetch accurate information.\n\nAlso extract statistical information it might be metrics, time, money which makes sense to the post.\n\nAfter gathering the necessary information:\n\nWrite a short LinkedIn post (100–150 words).\n\nStart with a strong hook.\n\nUse short paragraphs.\n\nProvide clear value or insight.\n\nEnd with a thoughtful closing line or question.\n\nAdd 3–5 relevant hashtags.\n\nKeep the tone professional and engaging.\n\nDo not mention Tavily or any tools used.\n\nOutput only the final LinkedIn post."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "17ab2113-043f-4781-9913-20be65861744",
+      "name": "LinkedIn Post Creation"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/images/generations",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "gpt-image-1"
+            },
+            {
+              "name": "prompt",
+              "value": "={{ $json.output }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        912,
+        16
+      ],
+      "id": "204cd0d7-269b-4fcf-9820-51ab7e76c399",
+      "name": "HTTP Request1",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "CJwCSnvUObFHYqGf",
+          "name": "ChatGPT"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "data[0].b64_json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        1120,
+        16
+      ],
+      "id": "0cb75767-2fb5-4841-a2f7-6be699478788",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "sendTo": "user-emailid",
+        "subject": "LinkedIn Content Creation Post",
+        "message": "={{ $('LinkedIn Post Creation').item.json.output }}",
+        "options": {
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {}
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1344,
+        16
+      ],
+      "id": "e2e42044-11fc-4411-a3ce-dbf1807e5130",
+      "name": "Send a message",
+      "webhookId": "92ac8d58-a934-4572-856a-64031d031750",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "aLaZihmMS0m4NjGs",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1584,
+        16
+      ],
+      "id": "b7aae129-3a55-4429-84ce-99a7cf429664",
+      "name": "No Operation, do nothing"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "LinkedIn Post Creation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "LinkedIn Post Creation",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Image Generation Prompt",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "ai_tool": [
+        [
+          {
+            "node": "LinkedIn Post Creation",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LinkedIn Post Creation": {
+      "main": [
+        [
+          {
+            "node": "Image Generation Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Image Generation Prompt": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "3e37da58-6646-4422-ba5f-a9a8c0d6bc9d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2db2abcc32cbbb9e9c5dd0176dcb6a5fbd3adaf42f92caf472bf17f9484b7921"
+  },
+  "id": "s35BQcCL41Y7rAqD",
+  "tags": [
+    {
+      "updatedAt": "2026-02-14T22:21:59.084Z",
+      "createdAt": "2026-02-14T22:21:59.084Z",
+      "id": "jDG7y0ivOufXsAQW",
+      "name": "Image Generation"
+    }
+  ]
+}
